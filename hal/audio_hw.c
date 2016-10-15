@@ -1211,7 +1211,7 @@ int start_input_stream(struct stream_in *in)
     if (get_usecase_from_list(adev, in->usecase) != NULL) {
         ALOGE("%s: use case assigned already in use, stream(%p)usecase(%d: %s)",
             __func__, &in->stream, in->usecase, use_case_table[in->usecase]);
-        goto error_config;
+        return -EINVAL;
     }
 
     in->pcm_device_id = platform_get_pcm_device_id(in->usecase, PCM_CAPTURE);
@@ -1872,6 +1872,8 @@ static int check_input_parameters(uint32_t sample_rate,
     switch (channel_count) {
     case 1:
     case 2:
+    case 3:
+    case 4:
     case 6:
         break;
     default:
@@ -2008,13 +2010,6 @@ static int out_standby(struct audio_stream *stream)
 
     ALOGD("%s: enter: stream (%p) usecase(%d: %s)", __func__,
           stream, out->usecase, use_case_table[out->usecase]);
-    if (out->usecase == USECASE_COMPRESS_VOIP_CALL) {
-        /* Ignore standby in case of voip call because the voip output
-         * stream is closed in adev_close_output_stream()
-         */
-        ALOGD("%s: Ignore Standby in VOIP call", __func__);
-        return 0;
-    }
 
     lock_output_stream(out);
     if (!out->standby) {
@@ -2026,8 +2021,13 @@ static int out_standby(struct audio_stream *stream)
         amplifier_output_stream_standby((struct audio_stream_out *) stream);
 
         out->standby = true;
-
-        if (!is_offload_usecase(out->usecase)) {
+        if (out->usecase == USECASE_COMPRESS_VOIP_CALL) {
+            voice_extn_compress_voip_close_output_stream(stream);
+            pthread_mutex_unlock(&adev->lock);
+            pthread_mutex_unlock(&out->lock);
+            ALOGD("VOIP output entered standby");
+            return 0;
+        } else if (!is_offload_usecase(out->usecase)) {
             if (out->pcm) {
                 pcm_close(out->pcm);
                 out->pcm = NULL;
@@ -2784,14 +2784,6 @@ static int in_standby(struct audio_stream *stream)
     ALOGD("%s: enter: stream (%p) usecase(%d: %s)", __func__,
           stream, in->usecase, use_case_table[in->usecase]);
 
-    if (in->usecase == USECASE_COMPRESS_VOIP_CALL) {
-        /* Ignore standby in case of voip call because the voip input
-         * stream is closed in adev_close_input_stream()
-         */
-        ALOGV("%s: Ignore Standby in VOIP call", __func__);
-        return status;
-    }
-
     lock_input_stream(in);
     if (!in->standby && in->is_st_session) {
         ALOGD("%s: sound trigger pcm stop lab", __func__);
@@ -2808,11 +2800,16 @@ static int in_standby(struct audio_stream *stream)
         amplifier_input_stream_standby((struct audio_stream_in *) stream);
 
         in->standby = true;
-        if (in->pcm) {
-            pcm_close(in->pcm);
-            in->pcm = NULL;
+        if (in->usecase == USECASE_COMPRESS_VOIP_CALL) {
+            voice_extn_compress_voip_close_input_stream(stream);
+            ALOGD("VOIP input entered standby");
+        } else {
+            if (in->pcm) {
+                pcm_close(in->pcm);
+                in->pcm = NULL;
+            }
+            status = stop_input_stream(in);
         }
-        status = stop_input_stream(in);
         pthread_mutex_unlock(&adev->lock);
     }
     pthread_mutex_unlock(&in->lock);
@@ -3780,8 +3777,10 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     bool is_low_latency = false;
 
     *stream_in = NULL;
-    if (check_input_parameters(config->sample_rate, config->format, channel_count) != 0)
+    if (check_input_parameters(config->sample_rate, config->format, channel_count) != 0) {
+        ALOGE("%s: invalid input parameters", __func__);
         return -EINVAL;
+    }
 
     in = (struct stream_in *)calloc(1, sizeof(struct stream_in));
 
