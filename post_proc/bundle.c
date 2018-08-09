@@ -462,12 +462,15 @@ __attribute__ ((visibility ("default")))
 void offload_effects_bundle_get_parameters(__unused struct str_parms *query,
                                            __unused struct str_parms *reply)
 {
+    (void)query;
+    (void)reply;
     asphere_get_parameters(query, reply);
 }
 
 __attribute__ ((visibility ("default")))
 void offload_effects_bundle_set_parameters(__unused struct str_parms *parms)
 {
+    (void)parms;
     asphere_set_parameters(parms);
 }
 
