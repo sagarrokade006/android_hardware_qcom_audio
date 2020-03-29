@@ -252,6 +252,8 @@ LOCAL_SHARED_LIBRARIES := \
         libexpat
 
 LOCAL_C_INCLUDES += \
+        external/tinyalsa/include \
+        external/tinycompress/include \
         external/expat/lib \
         $(call include-path-for, audio-route) \
         $(call include-path-for, audio-effects) \
