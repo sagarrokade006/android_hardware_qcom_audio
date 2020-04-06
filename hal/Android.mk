@@ -249,6 +249,11 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_C_INCLUDES += \
         external/expat/lib \
+        external/tinycompress/include \
+        external/tinyalsa/include \
+        hardware/libhardware/include \
+        system/media/audio_utils/include \
+        device/xiaomi/msm8956-common/include \
         $(call include-path-for, audio-route) \
         $(call include-path-for, audio-effects) \
         $(LOCAL_PATH)/$(AUDIO_PLATFORM) \
