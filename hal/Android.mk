@@ -8,37 +8,37 @@ LOCAL_ARM_MODE := arm
 
 LOCAL_CFLAGS := -Wno-error -Wno-sign-compare
 
-AUDIO_PLATFORM := $(TARGET_BOARD_PLATFORM)
+AUDIO_PLATFORM := $(PRODUCT_BOARD_PLATFORM)
 
-ifneq ($(filter msm8974 msm8226 msm8610 apq8084 msm8994 msm8992 msm8996,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8974 msm8226 msm8610 apq8084 msm8994 msm8992 msm8996,$(PRODUCT_BOARD_PLATFORM)),)
   # B-family platform uses msm8974 code base
   AUDIO_PLATFORM = msm8974
   MULTIPLE_HW_VARIANTS_ENABLED := true
-ifneq ($(filter msm8610,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8610,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_MSM8610
 endif
-ifneq ($(filter msm8226,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8226,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_MSM8x26
 endif
-ifneq ($(filter apq8084,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter apq8084,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_APQ8084
 endif
-ifneq ($(filter msm8994,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8994,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_MSM8994
 endif
-ifneq ($(filter msm8992,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8992,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_MSM8994
 endif
-ifneq ($(filter msm8996,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8996,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_MSM8996
 endif
 endif
 
-ifneq ($(filter msm8916 msm8909 msm8952,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8916 msm8909 msm8952,$(PRODUCT_BOARD_PLATFORM)),)
   AUDIO_PLATFORM = msm8916
   MULTIPLE_HW_VARIANTS_ENABLED := true
   LOCAL_CFLAGS := -DPLATFORM_MSM8916
-ifneq ($(filter msm8909,$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter msm8909,$(PRODUCT_BOARD_PLATFORM)),)
   LOCAL_CFLAGS := -DPLATFORM_MSM8909
 endif
 endif
@@ -274,7 +274,7 @@ endif
 
 ifeq ($(strip $(BOARD_SUPPORTS_SOUND_TRIGGER)),true)
     LOCAL_CFLAGS += -DSOUND_TRIGGER_ENABLED
-    LOCAL_CFLAGS += -DSOUND_TRIGGER_PLATFORM_NAME=$(TARGET_BOARD_PLATFORM)
+    LOCAL_CFLAGS += -DSOUND_TRIGGER_PLATFORM_NAME=$(PRODUCT_BOARD_PLATFORM)
     LOCAL_C_INCLUDES += $(TARGET_OUT_HEADERS)/mm-audio/sound_trigger
     LOCAL_SRC_FILES += audio_extn/soundtrigger.c
 endif
@@ -305,7 +305,7 @@ ifeq ($(strip $(AUDIO_FEATURE_ENABLED_SND_MONITOR)), true)
     LOCAL_SRC_FILES += audio_extn/sndmonitor.c
 endif
 
-LOCAL_MODULE := audio.primary.$(TARGET_BOARD_PLATFORM)
+LOCAL_MODULE := audio.primary.$(PRODUCT_BOARD_PLATFORM)
 
 LOCAL_MODULE_RELATIVE_PATH := hw
 
